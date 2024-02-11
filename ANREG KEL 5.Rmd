@@ -1,0 +1,211 @@
+---
+title: "Tugas Anreg Kel 5"
+author: "Sandra Berliana Putri"
+date: "2024-02-10"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Read data
+```{r}
+library(readxl)
+
+data_car <- read_xlsx ("C:/Users/Nabil Ibni Nawawi/Downloads/car data.xlsx")
+
+data_car <- data.frame(km_driven=data_car$km_driven,selling_price=data_car$selling_price)
+
+data_car
+n <- nrow(data_car)
+```
+
+# Deskripsi Data
+Data yang diambil merupakan data yang berasal dari data web kaggle. Data ini cenderung relatif berasal dari India. Data dikumpulkan dalam cakupan sementara hingga tanggal 27 Juni 2020 oleh Nehal Birla sebagai pemiliknya serta  Nishant Verma dan Nikhil Kushwaha sebagai editor. Didalam data ini terdapat informasi terkait mobil bekas. Adapun peubah-peubah yang terdapat didalamnya yaitu nama mobil, tahun, harga jual, jarak tempuh, bahan bakar, jenis penjualnya, transmisi dan pemiliknya. Dari beberapa peubah tersebut kami memilih peubah harga jual dengan jarak tempuh untuk kami buat dalam model regresi. Tujuannya adalah kami ingin melihat hubungan antara harga jual mobil dengan jarak yang telah ditempuhnya.
+
+# Persamaan regresi linear sederhana
+```{r}
+model <- lm(selling_price ~ km_driven, data = data_car)
+summary(model)
+```
+Berdasarkan perhitungan, didapat dugaan persamaan regresi linear atau nilai harapan dari peubah respon Y sebagai berikut.
+E[Y]^=Y^=662055-2,385X
+Interpretasi:
+1. Rata-rata harga jual mobil jika kilometer yang ditempuh bernilai 0 dengan kata lain mobil baru adalah sebesar 662055 Rupee.
+2. Peningkatan satu kilometer yang ditempuh akan mengurangi rata-rata harga jual mobil sebesar 2,385 Rupee.
+
+# Scatter plot
+Pada regresi linier sederhana kali ini, kita akan menduga harga mobil (selling_price) terhadap kilometer mobil (km_driven). Oleh karena itu harga mobil (selling_price) sebagai y dan kilometer mobil (km_driven) sebagai x. Kita menduga bahwa semakin besar kilometer mobil maka semakin murah harganya yang nanti ditandai dengan nilai slope(b1) minus. Dibawah ini disajikan scatter plot dengan sumbu x yaitu kilometer mobil (km_driven) dan sumbu y yaitu harga mobil (selling_price)
+```{r}
+selling_price.bar <- mean(data_car$selling_price)
+plot(data_car$km_driven,data_car$selling_price,
+     xlab = "km_driven",
+     ylab = "selling_price",
+     col = "grey")
+abline(model, col="red")
+text(30, 220, "Y_duga", adj = c(-0.1, 1.5), col = "red", cex = 0.8)
+abline(h=selling_price.bar, col="blue")
+text(31, 185, "Y_bar", adj = c(-0.1, 1.5), col = "blue", cex = 0.8)
+```
+
+Terdapat 2 garis pada scatter plot diatas, garis biru adalah y_bar atau rata-rata dari harga mobil (selling_price), sedangkan garis merah adalah garis persamaan regresi linier nya. Terlihat garis persamaan regresi liniear nya yaitu slope(b1) negatif ditandai dengan garis yang menuju kebawah kanan dari sumbu y. Nilai slope(b1) nya seperti yang telah dijelaskan sebelumnya yaitu -2,285.
+
+# Ringkasan umum variabel x (km_driven) dan y (selling_price)
+```{r}
+summary(data_car$km_driven)
+summary(data_car$selling_price)
+```
+Dari function summary dapat diketahui statistik lima serangkai atau ringkasan lima angka ditambah dengan rata-rata nilai dari masing-masing variabel x (km_driven) dan y (selling_price).
+
+# Boxplot km_driven(x) 
+```{r}
+boxplot(data_car$km_driven,horizontal = T,
+        main = "Boxplot km driven by car", col = "lightblue")
+
+```
+
+Dari Boxplot diatas dapat kita ketahui sebaran dari data kilometer (km_driven) yaitu relatif menjulur ke kanan dan mempunyai cukup banyak outlier
+# Boxplot selling_price(y)
+```{r}
+boxplot(data_car$selling_price,horizontal = T,
+        main = "Boxplot car selling price", col = "red")
+```
+
+Dari Boxplot diatas dapat kita ketahui sebaran dari data harga mobil (selling_price) yaitu relatif menjulur ke kanan dan mempunyai cukup banyak outlier
+# Anova
+```{r}
+(anova.model <- anova(model))
+
+(JKT <- anova.model$'Mean Sq'[1] + anova.model$'Sum Sq'[2])
+
+(KTG <- anova.model$`Mean Sq`[2])
+
+(galat.baku <- sqrt(KTG))
+```
+Dari tabel ANOVA didapat JKR dari model bernilai 5.3700e+13, JKG bernilai 1.3986e+15, sehingga JKT bernilai 1.452344e+15.
+
+Selain itu, didapat pula nilai dugaan ragam galat (KTG) sebesar 3.2242e+11 dan galat baku sebesar 567817.5.
+
+# Koefisien Determinasi
+```{r}
+JKR <- anova.model$'Mean Sq'[1]
+
+(RR <- JKR/JKT)
+```
+Dari koefisien determinasi sebesar 0.03697492 atau 3.7% menunjukkan bahwa hubungan antara kilometer yang ditempuh dengan harga jual mobil tidak sangat baik.
+
+# Dugaan Parameter b0
+```{r}
+(b0 <- model$coefficients[[1]])
+
+```
+```{r}
+(se_b0 <- sqrt(KTG*(1/n+mean(data_car$km_driven)^2/sum((data_car$km_driven-mean(data_car$km_driven))^2))))
+```
+
+```{r}
+(t_b0 <- b0/se_b0)
+```
+
+```{r}
+(t_tab <- qt(0.025,anova.model$Df[2],lower.tail=FALSE))
+```
+Karena t_b0 = 11.39796 > t_tab = 1.960511 maka tolak H0(b0=0), artinya ada nilai harga jual mobil yang tidak dapat dijelaskan oleh kilometer yang ditempuh.
+
+# Dugaan Parameter b1
+```{r}
+(b1 <- model$coefficients[[2]])
+```
+
+```{r}
+(se_b1 <- sqrt(KTG/sum((data_car$km_driven-mean(data_car$km_driven))^2)))
+```
+
+```{r}
+(t_b1 <- b1/se_b1)
+```
+Karena |t_b1| = 12.90564 > t_tab = 1.960511 maka tolak H0(b1=0), artinya ada hubungan linier antara kilometer yang ditempuh dan harga jual mobil.
+
+# Penduga Selang Kepercayaan
+## Penduga Selang Kepercayaan 95% bagi β0
+Dalam menentukan penduga selang kepercayaan 95% bagi β0, kita membutuhkan beberapa nilai variabel yaitu b0, se_b0, dan t_(n-2;α/2).
+```{r}
+#Nilai b0 sebagai berikut
+(b0 <- model$coefficients[[1]])
+```
+```{r}
+#Nilai se_b0 sebagai berikut
+(se_b0 <- sqrt(KTG*(1/n+mean(data_car$km_driven)^2/sum((data_car$km_driven-mean(data_car$km_driven))^2))))
+```
+```{r}
+#Nilai t_(n-2;α/2) sebagai berikut
+(t_tab <- qt(0.025,anova.model$Df[2],lower.tail=FALSE))
+```
+```{r}
+#Batas Bawah beta0
+(bb.b0 <- b0 - abs(qt(0.025, df=n-2))*se_b0)
+```
+```{r}
+#Batas Atas beta_0
+(ba.b0 <- b0 + abs(qt(0.025, df=n-2))*se_b0)
+```
+
+## Penduga Selang Kepercayaan 95% bagi β1
+Dalam menentukan penduga selang kepercayaan 95% bagi β1, kita membutuhkan beberapa nilai variabel yaitu b1, se_b1, dan t_(n-2;α/2).
+```{r}
+#Nilai b1 sebagai berikut
+(b1 <- model$coefficients[[2]])
+```
+```{r}
+#Nilai se_b1 sebagai berikut
+(se_b1 <- sqrt(KTG/sum((data_car$km_driven-mean(data_car$km_driven))^2)))
+```
+```{r}
+#Nilai t_(n-2;α/2) sebagai berikut
+(t_tab <- qt(0.025,anova.model$Df[2],lower.tail=FALSE))
+```
+```{r}
+#Batas Bawah beta1
+(bb.b1 <- b1 - abs(qt(0.025, df=n-2))*se_b1)
+```
+```{r}
+#Batas Atas beta_1
+(ba.b1 <- b1 + abs(qt(0.025, df=n-2))*se_b1)
+```
+
+Sehingga dapat disusun suatu selang kepercayaan untuk β0^ dan β1^ sebagai berikut.
+
+632710,4<β0^<691399,6
+
+Yang dapat dimaknai bahwa dalam taraf kepercayaan 95%, diyakini bahwa dugaan parameter β0^ berada dalam selang 632710,4 hingga 691399,6.
+
+-2,747361<β1^<-2,022731
+
+Yang dapat dimaknai bahwa dalam taraf kepercayaan 95%, diyakini bahwa dugaan parameter β1^ berada dalam selang -2,747361 hingga -2,022731.
+
+# Selang Kepercayaan Rataan
+Secara umum, kita dapat memahami bahwa selang kepercayaan untuk E(Y|x0)^ terdiri atas batas bawah dan batas atas yang dapat dituliskan sebagai berikut.
+```{r echo=FALSE, out.width="100%"}
+knitr::include_graphics("1.png", error=FALSE)
+```
+Misalkan kita ingin menduga nilai rataan (harapan) amatan ketika nilai km_driven=7658. Kita dapat memanfaatkan fungsi predict untuk mendapatkan nilai dugaan dan selang kepercayaannya sebagai berikut.
+
+```{r}
+amatan.diduga <- data.frame(km_driven=7658)
+predict(model, amatan.diduga, interval = "confidence")
+```
+
+Berdasarkan output sintaks di atas, diketahui bahwa dugaan rataan nilai Y ketika nilai km_driven=7658 adalah 643790,3. Selain itu, diindikasikan juga bahwa dalam taraf kepercayaan 95%, diyakini bahwa nilai dugaan rataan Y ketika nilai km_driven=7658 berada dalam selang 616667 hingga 670913,6.
+
+# Selang Kepercayaan Individu Amatan
+Secara umum, kita dapat memahami bahwa selang kepercayaan untuk y^(xi) terdiri atas batas bawah dan batas atas yang dapat dituliskan sebagai berikut.
+```{r echo=FALSE, out.width="100%"}
+knitr::include_graphics("2.png", error=FALSE)
+```
+
+Misalkan kita ingin menduga nilai individu amatan ketika nilai km_driven=7658 Kita dapat memanfaatkan fungsi predict untuk mendapatkan nilai dugaan dan selang kepercayaannya sebagai berikut.
+```{r}
+predict(model, amatan.diduga, interval = "prediction")
+```
+Berdasarkan output sintaks di atas, diketahui bahwa dugaan nilai individu Y ketika nilai km_driven=7658 adalah 643790,3. Selain itu, diindikasikan juga bahwa dalam taraf kepercayaan 95%, diyakini bahwa nilai amatan individu Y ketika nilai km_driven=7658 berada dalam selang -469752,6 hingga 1757333.
